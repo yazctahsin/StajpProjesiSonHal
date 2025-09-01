@@ -1,0 +1,27 @@
+﻿@page
+@model StajProjesi.Areas.Identity.Pages.Account.RegisterConfirmationModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Kayıt Onayı";
+}
+
+
+<div class="container identity-login">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h1 class="h5 text-center mb-3">Kayıt İşlemi Başarılı</h1>
+                    <p class="text-muted mb-2">
+                        E-posta adresinize doğrulama bağlantısı gönderdik. Lütfen e-postanızı kontrol edin ve hesabınızı doğrulayın.
+                        Eğer e-posta gelmediyse, aşağıdaki bağlantıyı kullanarak doğrulamayı yeniden gönderebilirsiniz.
+                    </p>
+                    <div class="d-flex justify-content-between mt-3">
+                        <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Giriş Sayfasına Dön</a>
+                        <a asp-page="./ResendEmailConfirmation">E-posta Doğrulamasını Yeniden Gönder</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

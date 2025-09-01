@@ -1,0 +1,61 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom mb-3">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">StajProjesi</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Ana Sayfa</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/hospitals" Match="NavLinkMatch.Prefix">Hastaneler</NavLink>
+                </li>
+                <AuthorizeView>
+                    <Authorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/find-hospital" Match="NavLinkMatch.Prefix">Hastane Bul</NavLink>
+                        </li>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/transfers" Match="NavLinkMatch.Prefix">Nakil Talepleri</NavLink>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/admin" Match="NavLinkMatch.All">Admin</NavLink>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
+            </ul>
+
+            <ul class="navbar-nav ms-auto">
+                <AuthorizeView>
+                    <Authorized Context="auth">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Identity/Account/Manage/Index">
+                                Hesabım (@auth.User.Identity?.Name)
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Identity/Account/Logout">Çıkış</a>
+                        </li>
+                    </Authorized>
+                    <NotAuthorized>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Identity/Account/Login">Giriş</a>
+                        </li>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </ul>
+        </div>
+    </div>
+</nav>

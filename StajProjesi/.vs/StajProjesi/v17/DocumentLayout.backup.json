@@ -1,0 +1,69 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "E:\\Tahsin Dosyalar\\StajProjesi\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{D4610F6A-7C07-41A8-8EA1-86090A3CDC36}|StajProjesi\\StajProjesi.csproj|e:\\tahsin dosyalar\\stajprojesi\\stajprojesi\\areas\\identity\\pages\\account\\login.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D4610F6A-7C07-41A8-8EA1-86090A3CDC36}|StajProjesi\\StajProjesi.csproj|solutionrelative:stajprojesi\\areas\\identity\\pages\\account\\login.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D4610F6A-7C07-41A8-8EA1-86090A3CDC36}|StajProjesi\\StajProjesi.csproj|e:\\tahsin dosyalar\\stajprojesi\\stajprojesi\\areas\\identity\\pages\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{D4610F6A-7C07-41A8-8EA1-86090A3CDC36}|StajProjesi\\StajProjesi.csproj|solutionrelative:stajprojesi\\areas\\identity\\pages\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D4610F6A-7C07-41A8-8EA1-86090A3CDC36}|StajProjesi\\StajProjesi.csproj|e:\\tahsin dosyalar\\stajprojesi\\stajprojesi\\pages\\shared\\_validationscriptspartial.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{D4610F6A-7C07-41A8-8EA1-86090A3CDC36}|StajProjesi\\StajProjesi.csproj|solutionrelative:stajprojesi\\pages\\shared\\_validationscriptspartial.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Login.cshtml.cs",
+              "DocumentMoniker": "E:\\Tahsin Dosyalar\\StajProjesi\\StajProjesi\\Areas\\Identity\\Pages\\Account\\Login.cshtml.cs",
+              "RelativeDocumentMoniker": "StajProjesi\\Areas\\Identity\\Pages\\Account\\Login.cshtml.cs",
+              "ToolTip": "E:\\Tahsin Dosyalar\\StajProjesi\\StajProjesi\\Areas\\Identity\\Pages\\Account\\Login.cshtml.cs",
+              "RelativeToolTip": "StajProjesi\\Areas\\Identity\\Pages\\Account\\Login.cshtml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-01T12:50:06.241Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Login.cshtml",
+              "DocumentMoniker": "E:\\Tahsin Dosyalar\\StajProjesi\\StajProjesi\\Areas\\Identity\\Pages\\Account\\Login.cshtml",
+              "RelativeDocumentMoniker": "StajProjesi\\Areas\\Identity\\Pages\\Account\\Login.cshtml",
+              "ToolTip": "E:\\Tahsin Dosyalar\\StajProjesi\\StajProjesi\\Areas\\Identity\\Pages\\Account\\Login.cshtml",
+              "RelativeToolTip": "StajProjesi\\Areas\\Identity\\Pages\\Account\\Login.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-09-01T12:47:49.193Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "_ValidationScriptsPartial.cshtml",
+              "DocumentMoniker": "E:\\Tahsin Dosyalar\\StajProjesi\\StajProjesi\\Pages\\Shared\\_ValidationScriptsPartial.cshtml",
+              "RelativeDocumentMoniker": "StajProjesi\\Pages\\Shared\\_ValidationScriptsPartial.cshtml",
+              "ToolTip": "E:\\Tahsin Dosyalar\\StajProjesi\\StajProjesi\\Pages\\Shared\\_ValidationScriptsPartial.cshtml",
+              "RelativeToolTip": "StajProjesi\\Pages\\Shared\\_ValidationScriptsPartial.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-09-01T12:39:17.149Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

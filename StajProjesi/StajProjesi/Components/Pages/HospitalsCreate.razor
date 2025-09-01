@@ -1,0 +1,114 @@
+﻿@page "/hospitals/create"
+@using StajProjesi.Data
+@using StajProjesi.Models
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+
+@inject ApplicationDbContext Db
+@inject NavigationManager Nav
+
+<PageTitle>Hastane Ekle</PageTitle>
+
+<h3 class="page-title">Hastane Ekle</h3>
+
+<div class="card card-elevated">
+    <div class="card-body">
+        <EditForm EditContext="@editContext">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label class="form-label">Ad</label>
+                <InputText class="form-control" @bind-Value="model.Name" />
+                <ValidationMessage For="@(() => model.Name)" />
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Şehir</label>
+                    <InputText class="form-control" @bind-Value="model.City" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Telefon</label>
+                    <InputText class="form-control" @bind-Value="model.Phone" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Adres</label>
+                <InputText class="form-control" @bind-Value="model.Address" />
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Enlem (Latitude)</label>
+                    <InputNumber class="form-control" @bind-Value="model.Latitude" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Boylam (Longitude)</label>
+                    <InputNumber class="form-control" @bind-Value="model.Longitude" />
+                </div>
+            </div>
+
+            <fieldset class="mb-3 form-section">
+                <legend class="fs-6">Yetenekler</legend>
+                @foreach (var opt in capabilityOptions)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked="@HasCapability(opt.Flag)" @onchange="(e => ToggleCapability(opt.Flag, e.Value))" />
+                        <label class="form-check-label">@opt.Label</label>
+                    </div>
+                }
+            </fieldset>
+
+            <button type="button" class="btn btn-primary" @onclick="OnSaveAsync">Kaydet</button>
+            <button type="button" class="btn btn-secondary ms-2" @onclick="@(() => Nav.NavigateTo("/hospitals"))">İptal</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private Hospital model = new();
+    private EditContext? editContext;
+
+    private (HospitalCapabilities Flag, string Label)[] capabilityOptions = new[]
+    {
+        (HospitalCapabilities.Emergency, "Acil"),
+        (HospitalCapabilities.Trauma, "Travma"),
+        (HospitalCapabilities.WoundCare, "Yara Bakımı"),
+        (HospitalCapabilities.BurnUnit, "Yanık"),
+        (HospitalCapabilities.Cardiology, "Kardiyoloji"),
+        (HospitalCapabilities.Neurology, "Nöroloji"),
+        (HospitalCapabilities.InfectiousDisease, "Enfeksiyon"),
+        (HospitalCapabilities.Pediatrics, "Çocuk Sağlığı"),
+        (HospitalCapabilities.Maternity, "Kadın Doğum"),
+        (HospitalCapabilities.Orthopedics, "Ortopedi"),
+        (HospitalCapabilities.Oncology, "Onkoloji"),
+        (HospitalCapabilities.Psychiatry, "Psikiyatri")
+    };
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(model);
+    }
+
+    private bool HasCapability(HospitalCapabilities f) => model.Capabilities.HasFlag(f);
+    private void ToggleCapability(HospitalCapabilities f, object? val)
+    {
+        bool isChecked = val is bool b && b;
+        if (isChecked) model.Capabilities |= f;
+        else model.Capabilities &= ~f;
+        StateHasChanged();
+    }
+
+    private async Task OnSaveAsync()
+    {
+        if (editContext is null) return;
+        if (!editContext.Validate()) return;
+
+        model.CreatedAt = DateTime.UtcNow;
+        Db.Hospitals.Add(model);
+        await Db.SaveChangesAsync();
+        Nav.NavigateTo("/hospitals");
+    }
+}

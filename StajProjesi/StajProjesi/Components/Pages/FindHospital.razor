@@ -1,0 +1,216 @@
+﻿@page "/find-hospital"
+@using StajProjesi.Services
+@using StajProjesi.Models
+@inject QuestionnaireService Q
+@inject HospitalRecommendationService Reco
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+
+<PageTitle>Hastane Öner</PageTitle>
+
+<h3 class="page-title">Size en uygun ve en yakın hastaneyi bulalım</h3>
+<p class="page-subtitle">Kısa soruları yanıtlayın, algoritma size uygun hastaneleri puanlayıp sıralasın.</p>
+
+@if (results is null)
+{
+    <EditForm Model="@answerItems" OnValidSubmit="@OnSubmit">
+        <ol class="ps-3">
+            @for (var i = 0; i < questions.Count; i++)
+            {
+                var q = questions[i];
+                var item = answerItems[i];
+                <li class="mb-3">
+                    <p class="fw-semibold mb-1">@q.Text</p>
+
+                    <InputRadioGroup @bind-Value="item.Value" Name="@q.Id">
+                        @foreach (var opt in q.Options)
+                        {
+                            <div class="form-check form-check-inline">
+                                <InputRadio class="form-check-input" Value="@opt.Value" />
+                                <label class="form-check-label">@opt.Text</label>
+                            </div>
+                        }
+                    </InputRadioGroup>
+                </li>
+            }
+        </ol>
+
+        <div class="alert alert-info">
+            Konumunuza erişim izni istenecek. Reddederseniz sadece uygunluğa göre öneri yapılır.
+        </div>
+
+        <button type="submit" class="btn btn-primary">Hastane Öner</button>
+    </EditForm>
+}
+else
+{
+    if (results.Count == 0)
+    {
+        <div class="alert alert-warning">Uygun hastane bulunamadı. Kriterleri gevşetip tekrar deneyin.</div>
+    }
+    else
+    {
+        <div class="mb-3">
+            <h5 class="mb-2">Önerimiz</h5>
+            @RenderResult(results[0], highlighted: true)
+        </div>
+        @if (results.Count > 1)
+        {
+            <h6 class="mt-3">Diğer seçenekler</h6>
+            @for (int i = 1; i < results.Count; i++)
+            {
+                @RenderResult(results[i])
+            }
+        }
+    }
+
+    <button class="btn btn-secondary mt-3" @onclick="Reset">Baştan Başla</button>
+}
+
+@code {
+    private List<Question> questions = new();
+    private List<AnswerItem> answerItems = new();
+    private List<RecommendationResult>? results;
+
+    // Yetenek rozetleri için etiket eşlemesi
+    private readonly (HospitalCapabilities Flag, string Label)[] capabilityLabels = new[]
+    {
+        (HospitalCapabilities.Emergency, "Acil"),
+        (HospitalCapabilities.Trauma, "Travma"),
+        (HospitalCapabilities.WoundCare, "Yara Bakımı"),
+        (HospitalCapabilities.BurnUnit, "Yanık"),
+        (HospitalCapabilities.Cardiology, "Kardiyoloji"),
+        (HospitalCapabilities.Neurology, "Nöroloji"),
+        (HospitalCapabilities.InfectiousDisease, "Enfeksiyon"),
+        (HospitalCapabilities.Pediatrics, "Çocuk"),
+        (HospitalCapabilities.Maternity, "Kadın Doğum"),
+        (HospitalCapabilities.Orthopedics, "Ortopedi"),
+        (HospitalCapabilities.Oncology, "Onkoloji"),
+        (HospitalCapabilities.Psychiatry, "Psikiyatri")
+    };
+
+    protected override void OnInitialized()
+    {
+        questions = Q.GetQuestions();
+        // Her soru için property tabanlı bir öğe oluştur
+        answerItems = questions.Select(q => new AnswerItem
+        {
+            QuestionId = q.Id,
+            Value = "no"
+        }).ToList();
+    }
+
+    private async Task OnSubmit()
+    {
+        // AnswerItem -> Dictionary çevir
+        var answers = answerItems.ToDictionary(x => x.QuestionId, x => x.Value);
+
+        double? lat = null, lng = null;
+        try
+        {
+            var pos = await JS.InvokeAsync<GeoPos>("appGeo.getLocation");
+            lat = pos?.latitude;
+            lng = pos?.longitude;
+        }
+        catch
+        {
+            // Konum izni verilmediyse yalnızca yetenek uyumuna göre sıralanır
+        }
+
+        results = await Reco.RecommendAsync(answers, lat, lng);
+    }
+
+    private void Reset()
+    {
+        results = null;
+        // Cevapları sıfırla
+        for (int i = 0; i < answerItems.Count; i++)
+            answerItems[i].Value = "no";
+        StateHasChanged();
+    }
+
+    private RenderFragment RenderResult(RecommendationResult r, bool highlighted = false) => builder =>
+    {
+        var cls = highlighted ? "card border-success mb-2 card-elevated" : "card mb-2 card-elevated";
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", cls);
+        builder.OpenElement(2, "div");
+        builder.AddAttribute(3, "class", "card-body");
+        builder.OpenElement(4, "div");
+        builder.AddAttribute(5, "class", "d-flex justify-content-between align-items-start");
+        builder.OpenElement(6, "div");
+
+        builder.OpenElement(7, "h5");
+        builder.AddContent(8, r.Hospital.Name);
+        builder.CloseElement(); // h5
+
+        if (!string.IsNullOrWhiteSpace(r.Hospital.Address) || !string.IsNullOrWhiteSpace(r.Hospital.City))
+        {
+            builder.OpenElement(9, "div");
+            builder.AddAttribute(10, "class", "text-muted mb-1");
+            builder.AddContent(11, $"{r.Hospital.Address ?? ""} {r.Hospital.City ?? ""}");
+            builder.CloseElement();
+        }
+
+        if (!string.IsNullOrWhiteSpace(r.Hospital.Phone))
+        {
+            builder.OpenElement(12, "div");
+            builder.AddContent(13, $"Tel: {r.Hospital.Phone}");
+            builder.CloseElement();
+        }
+
+        if (r.DistanceKm.HasValue)
+        {
+            builder.OpenElement(14, "div");
+            builder.AddAttribute(15, "class", "mt-1");
+            builder.AddContent(16, $"Uzaklık: {r.DistanceKm.Value:F1} km");
+            builder.CloseElement();
+        }
+
+        // Yetenek rozetleri
+        var caps = capabilityLabels.Where(c => r.Hospital.Capabilities.HasFlag(c.Flag)).ToList();
+        if (caps.Count > 0)
+        {
+            builder.OpenElement(17, "div");
+            builder.AddAttribute(18, "class", "mt-2");
+            foreach (var c in caps)
+            {
+                builder.OpenElement(19, "span");
+                builder.AddAttribute(20, "class", "badge rounded-pill text-bg-light border badge-cap");
+                builder.AddContent(21, c.Label);
+                builder.CloseElement();
+            }
+            builder.CloseElement();
+        }
+
+        builder.CloseElement(); // left col
+
+        // Right / actions
+        builder.OpenElement(22, "div");
+        builder.AddAttribute(23, "class", "ms-3");
+        builder.OpenElement(24, "a");
+        builder.AddAttribute(25, "class", "btn btn-sm btn-success");
+        builder.AddAttribute(26, "href", $"/transfers/create/{r.Hospital.Id}");
+        builder.AddContent(27, "Nakil talep oluştur");
+        builder.CloseElement(); // a
+        builder.CloseElement(); // right
+
+        builder.CloseElement(); // header row
+
+        builder.CloseElement(); // card-body
+        builder.CloseElement(); // card
+    };
+
+    // Binding için property tabanlı küçük view-model
+    private class AnswerItem
+    {
+        public string QuestionId { get; set; } = "";
+        public string Value { get; set; } = "no";
+    }
+
+    public class GeoPos
+    {
+        public double latitude { get; set; }
+        public double longitude { get; set; }
+    }
+}

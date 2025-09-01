@@ -1,0 +1,129 @@
+﻿@page "/hospitals"
+@using StajProjesi.Data
+@using StajProjesi.Models
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+@inject ApplicationDbContext Db
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
+
+<PageTitle>Hastaneler</PageTitle>
+
+<h3 class="page-title">Hastaneler</h3>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <NavLink class="btn btn-primary mb-3" href="/hospitals/create">Yeni Ekle</NavLink>
+    </Authorized>
+</AuthorizeView>
+
+@if (errorMessage is not null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (hospitals is null)
+{
+    <div class="d-flex align-items-center">
+        <div class="spinner-border text-primary me-2" role="status" aria-hidden="true"></div>
+        <span>Yükleniyor...</span>
+    </div>
+}
+else if (hospitals.Count == 0)
+{
+    <div class="alert alert-info">Kayıt yok.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Ad</th>
+                <th>Şehir</th>
+                <th>Adres</th>
+                <th>Telefon</th>
+                <th class="table-actions"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var h in hospitals)
+            {
+                <tr>
+                    <td>@h.Name</td>
+                    <td>@h.City</td>
+                    <td>@h.Address</td>
+                    <td>@h.Phone</td>
+                    <td>
+                        <AuthorizeView Roles="Admin">
+                            <Authorized>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-secondary" @onclick="@(() => Nav.NavigateTo($"/hospitals/edit/{h.Id}"))">Düzenle</button>
+                                    <button type="button" class="btn btn-outline-danger" @onclick="@(() => OnDeleteAsync(h.Id))">Sil</button>
+                                </div>
+                            </Authorized>
+                            <NotAuthorized>
+                                <span class="text-muted">Salt-okunur</span>
+                            </NotAuthorized>
+                        </AuthorizeView>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Hospital>? hospitals;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        errorMessage = null;
+        try
+        {
+            hospitals = await Db.Hospitals
+                .OrderBy(h => h.Name)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Hastaneler yüklenirken hata oluştu: " + ex.Message;
+        }
+    }
+
+    private async Task OnDeleteAsync(int id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Kaydı silmek istediğinize emin misiniz?");
+        if (!confirm) return;
+
+        try
+        {
+            var entity = await Db.Hospitals.FirstOrDefaultAsync(h => h.Id == id);
+            if (entity is null) return;
+
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            if (!user.IsInRole("Admin"))
+            {
+                errorMessage = "Silme işlemi için yetkiniz yok.";
+                return;
+            }
+
+            Db.Hospitals.Remove(entity);
+            await Db.SaveChangesAsync();
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Silme sırasında hata: " + ex.Message;
+        }
+    }
+}

@@ -1,0 +1,145 @@
+﻿@page "/transfers"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+@using StajProjesi.Data
+@using StajProjesi.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject AuthenticationStateProvider AuthState
+
+<PageTitle>Nakil Talepleri</PageTitle>
+
+<h3 class="page-title">Nakil Talepleri</h3>
+<p class="page-subtitle">Size ait nakil taleplerinin durumunu görüntüleyebilirsiniz.</p>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (items is null)
+{
+    <div class="d-flex align-items-center">
+        <div class="spinner-border text-primary me-2" role="status" aria-hidden="true"></div>
+        <span>Yükleniyor...</span>
+    </div>
+}
+else if (items.Count == 0)
+{
+    <div class="alert alert-info">Kayıt yok.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Hastane</th>
+                <th>Hasta</th>
+                <th>Durum</th>
+                <th>Oluşturan</th>
+                <th>Oluşturma</th>
+                <th class="table-actions">İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in items)
+            {
+                <tr>
+                    <td>@t.Hospital?.Name</td>
+                    <td>@t.PatientName</td>
+                    <td>
+                        <span class="badge @GetStatusBadgeClass(t.Status)">@GetStatusText(t.Status)</span>
+                    </td>
+                    <td>@(string.IsNullOrEmpty(t.RequestedByUserId) ? "-" : t.RequestedByUserId)</td>
+                    <td>@t.CreatedAt.ToLocalTime().ToString("g")</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Durum">
+                            <button class="btn btn-outline-primary" title="Yolda" @onclick="@(() => SetStatusAsync(t, TransferStatus.EnRoute))">Yolda</button>
+                            <button class="btn btn-outline-success" title="Tamamlandı" @onclick="@(() => SetStatusAsync(t, TransferStatus.Completed))">Tamamlandı</button>
+                            <button class="btn btn-outline-danger" title="İptal" @onclick="@(() => SetStatusAsync(t, TransferStatus.Canceled))">İptal</button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<TransferRequest>? items;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        error = null;
+        try
+        {
+            var auth = await AuthState.GetAuthenticationStateAsync();
+            var user = auth.User;
+
+            bool isAdmin = user.IsInRole("Admin");
+            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var query = Db.TransferRequests
+                .Include(t => t.Hospital)
+                .OrderByDescending(t => t.CreatedAt)
+                .AsQueryable();
+
+            if (!isAdmin && !string.IsNullOrEmpty(userId))
+            {
+                query = query.Where(t => t.RequestedByUserId == userId);
+            }
+
+            items = await query.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            error = "Nakil talepleri yüklenirken hata: " + ex.Message;
+        }
+    }
+
+    private string GetStatusBadgeClass(TransferStatus s) => s switch
+    {
+        TransferStatus.Created => "text-bg-secondary",
+        TransferStatus.EnRoute => "text-bg-info",
+        TransferStatus.Arrived => "text-bg-primary",
+        TransferStatus.Completed => "text-bg-success",
+        TransferStatus.Canceled => "text-bg-danger",
+        _ => "text-bg-light"
+    };
+
+    private string GetStatusText(TransferStatus s) => s switch
+    {
+        TransferStatus.Created => "Oluşturuldu",
+        TransferStatus.EnRoute => "Yolda",
+        TransferStatus.Arrived => "Varıldı",
+        TransferStatus.Completed => "Tamamlandı",
+        TransferStatus.Canceled => "İptal",
+        _ => s.ToString()
+    };
+
+    private async Task SetStatusAsync(TransferRequest t, TransferStatus s)
+    {
+        try
+        {
+            var entity = await Db.TransferRequests.FirstOrDefaultAsync(x => x.Id == t.Id);
+            if (entity is null) return;
+
+            entity.Status = s;
+            entity.UpdatedAt = DateTime.UtcNow;
+            await Db.SaveChangesAsync();
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            error = "Durum güncellenirken hata: " + ex.Message;
+        }
+    }
+}

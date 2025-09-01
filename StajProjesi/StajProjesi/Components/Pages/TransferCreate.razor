@@ -1,0 +1,84 @@
+﻿@page "/transfers/create/{HospitalId:int}"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+@using StajProjesi.Data
+@using StajProjesi.Models
+@inject ApplicationDbContext Db
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthState
+
+<PageTitle>Nakil Talep Oluştur</PageTitle>
+
+<h3>Nakil Talep Oluştur</h3>
+
+@if (hospital is null)
+{
+    <div class="alert alert-danger">Hastane bulunamadı.</div>
+}
+else
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">@hospital.Name</h5>
+            <div class="text-muted">@hospital.Address @hospital.City</div>
+            @if (!string.IsNullOrWhiteSpace(hospital.Phone))
+            {
+                <div>Tel: @hospital.Phone</div>
+            }
+        </div>
+    </div>
+
+    <EditForm EditContext="editContext">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Hasta Adı</label>
+            <InputText class="form-control" @bind-Value="model.PatientName" />
+            <ValidationMessage For="@(() => model.PatientName)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Notlar</label>
+            <InputTextArea class="form-control" @bind-Value="model.Notes" rows="3" />
+        </div>
+
+        <button type="button" class="btn btn-success" @onclick="OnCreateAsync">Talep Oluştur</button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="@(() => Nav.NavigateTo("/transfers"))">İptal</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int HospitalId { get; set; }
+
+    private Hospital? hospital;
+    private TransferRequest model = new();
+    private EditContext? editContext;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        hospital = await Db.Hospitals.FindAsync(HospitalId);
+        model.HospitalId = HospitalId;
+        editContext = new EditContext(model);
+    }
+
+    private async Task OnCreateAsync()
+    {
+        if (editContext is null) return;
+        if (!editContext.Validate()) return;
+
+        var auth = await AuthState.GetAuthenticationStateAsync();
+        var user = auth.User;
+        model.RequestedByUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        model.Status = TransferStatus.Created;
+        model.CreatedAt = DateTime.UtcNow;
+        model.UpdatedAt = DateTime.UtcNow;
+
+        Db.TransferRequests.Add(model);
+        await Db.SaveChangesAsync();
+
+        Nav.NavigateTo("/transfers");
+    }
+}

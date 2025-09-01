@@ -1,0 +1,51 @@
+﻿@page
+@model StajProjesi.Areas.Identity.Pages.Account.LoginModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Giriş";
+}
+
+<div class="container identity-login">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h1 class="h4 text-center mb-3">Giriş Yap</h1>
+                    <hr />
+                    <form id="account" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Email" class="form-label">E-posta</label>
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" />
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Password" class="form-label">Şifre</label>
+                            <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" />
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input class="form-check-input" asp-for="Input.RememberMe" />
+                            <label class="form-check-label" asp-for="Input.RememberMe">Beni hatırla</label>
+                        </div>
+
+                        <button id="login-submit" type="submit" class="btn btn-primary w-100">Giriş</button>
+                    </form>
+
+                    <div class="d-flex flex-column flex-sm-row gap-2 justify-content-between mt-3">
+                        <a id="forgot-password" asp-page="./ForgotPassword">Şifremi Unuttum</a>
+                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Yeni Kullanıcı Kaydı</a>
+                        <a asp-page="./ResendEmailConfirmation">E-posta Doğrulamasını Yeniden Gönder</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
